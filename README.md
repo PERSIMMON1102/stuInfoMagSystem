@@ -1,0 +1,2 @@
+# stuInfoMagSystem
+一个基于springboot与vue的集成项目
