@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- 页面meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>学生学籍管理系统</title>
+    <meta name="description" content="学生学籍管理系统">
+    <meta name="keywords" content="学生学籍管理系统">
+    <meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" name="viewport">
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="../plugins/elementui/index.css">
+    <link rel="stylesheet" href="../plugins/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body class="hold-transition">
+<div id="app">
+    <div class="content-header">
+        <h1>选课管理<small>选课管理</small></h1>
+        <el-breadcrumb separator-class="el-icon-arrow-right" class="breadcrumb">
+            <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+            <el-breadcrumb-item>选课管理</el-breadcrumb-item>
+            <el-breadcrumb-item>课程管理</el-breadcrumb-item>
+        </el-breadcrumb>
+    </div>
+    <div class="app-container">
+        <div class="box">
+            <div class="filter-container">
+                <el-input placeholder="课程代码/课程名称" v-model="pagination.queryString" style="width: 200px;" class="filter-item"></el-input>
+                <el-button @click="findPage()" class="dalfBut">查询</el-button>
+                <el-button type="primary" class="butT" @click="handleCreate()">增添</el-button>
+            </div>
+            <el-table size="small" current-row-key="id" :data="dataList" stripe highlight-current-row>
+                <el-table-column type="index" align="center" label="序号"></el-table-column>
+                <el-table-column prop="coursecode" label="课程代码" align="center"></el-table-column>
+                <el-table-column prop="coursename" label="课程名称" align="center"></el-table-column>
+                <el-table-column prop="credits" label="学分" align="center"></el-table-column>
+                <el-table-column prop="instructorname" label="任课教师" align="center"></el-table-column>
+                <el-table-column prop="remark" label="课程说明" align="center"></el-table-column>
+
+                </el-table-column>
+
+                <el-table-column label="操作" align="center">
+                    <template slot-scope="scope">
+                        <el-button type="primary" size="mini" @click="handleUpdate(scope.row)">编辑</el-button>
+                        <el-button size="mini" type="danger" @click="handleDelete(scope.row)">删除</el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+            <div class="pagination-container">
+                <el-pagination
+                        class="pagiantion"
+                        @current-change="handleCurrentChange"
+                        :current-page="pagination.currentPage"
+                        :page-size="pagination.pageSize"
+                        layout="total, prev, pager, next, jumper"
+                        :total="pagination.total">
+                </el-pagination>
+            </div>
+            <!-- 新增标签弹层 -->
+            <div class="add-form">
+                <el-dialog title="新增课程" :visible.sync="dialogFormVisible">
+                    <!-- 被校验的表单必须有这个属性 ref -->
+                    <el-form ref="dataAddForm" :model="formData" :rules="rules" label-position="right" label-width="100px">
+                        <el-row>
+                            <el-col :span="12">
+                                <el-form-item label="课程代码" prop="coursecode">
+                                    <el-input v-model="formData.coursecode"/>
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="12">
+                                <el-form-item label="课程名称" prop="coursename">
+                                    <el-input v-model="formData.coursename"/>
+                                </el-form-item>
+                            </el-col>
+                        </el-row>
+                        <el-row>
+
+                        </el-row>
+                        <el-row>
+                            <el-col :span="12">
+                                <el-form-item label="学分" prop="credits">
+                                    <el-input v-model="formData.credits"/>
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="12">
+                                <el-form-item label="任课教师">
+                                    <el-input v-model="formData.instructorname"/>
+                                </el-form-item>
+                            </el-col>
+                        </el-row>
+                        <el-row>
+                            <el-col :span="24">
+                                <el-form-item label="课程说明">
+                                    <el-input v-model="formData.remark" type="textarea"></el-input>
+                                </el-form-item>
+                            </el-col>
+                        </el-row>
+                    </el-form>
+                    <div slot="footer" class="dialog-footer">
+                        <el-button @click="dialogFormVisible = false">取消</el-button>
+                        <el-button type="primary" @click="handleAdd()">确定</el-button>
+                    </div>
+                </el-dialog>
+            </div>
+
+            <!-- 编辑标签弹层 -->
+            <div class="add-form">
+                <el-dialog title="编辑检查项" :visible.sync="dialogFormVisible4Edit">
+                    <el-form ref="dataEditForm" :model="formData" :rules="rules" label-position="right" label-width="100px">
+                        <el-row>
+                            <el-col :span="12">
+                                <el-form-item label="课程代码" prop="coursecode">
+                                    <el-input v-model="formData.coursecode"/>
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="12">
+                                <el-form-item label="课程名称" prop="coursename">
+                                    <el-input v-model="formData.coursename"/>
+                                </el-form-item>
+                            </el-col>
+                        </el-row>
+                        <el-row>
+                            <el-col :span="12">
+                                <el-form-item label="学分" prop="credits">
+                                    <el-input v-model="formData.credits"/>
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="12">
+                                <el-form-item label="任课教师">
+                                    <el-input v-model="formData.instructorname"/>
+                                </el-form-item>
+                            </el-col>
+                        </el-row>
+                        <el-row>
+                            <el-col :span="24">
+                                <el-form-item label="课程说明">
+                                    <el-input v-model="formData.remark" type="textarea"></el-input>
+                                </el-form-item>
+                            </el-col>
+                        </el-row>
+                    </el-form>
+                    <div slot="footer" class="dialog-footer">
+                        <el-button @click="dialogFormVisible4Edit = false">取消</el-button>
+                        <el-button type="primary" @click="handleEdit()">确定</el-button>
+                    </div>
+                </el-dialog>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<!-- 引入组件库 -->
+<script src="../js/vue.js"></script>
+<script src="../plugins/elementui/index.js"></script>
+<script type="text/javascript" src="../js/jquery.min.js"></script>
+<script src="../js/axios-0.18.0.js"></script>
+<script>
+    var vue = new Vue({
+        el: '#app',
+        data:{
+            pagination: {//分页相关模型数据
+                currentPage: 1,//当前页码
+                pageSize:10,//每页显示的记录数
+                total:0,//总记录数
+                queryString:null//查询条件
+            },
+            dataList: [],//当前页要展示的分页列表数据
+            formData: {},//表单数据
+            dialogFormVisible: false,//增加表单是否可见
+            dialogFormVisible4Edit:false,//编辑表单是否可见
+            rules: {//校验规则
+                code: [{ required: true, message: '课程编码为必填项', trigger: 'blur' }],
+                name: [{ required: true, message: '课程名称为必填项', trigger: 'blur' }]
+            }
+        },
+        //钩子函数，VUE对象初始化完成后自动执行
+        created() {
+            this.findPage();
+        },
+        methods: {
+            //编辑检查项
+            handleEdit() {
+                //提交表单(校验通过异步提交)
+                this.$refs['dataEditForm'].validate((valid) => {
+                    if (valid) {
+                        axios.post('/checkitem1/addItemInfo',this.formData).then((res)=>{
+                            //关闭添加dialog
+                            this.dialogFormVisible4Edit = false;
+                            if(res.data.flag){
+                                this.$message({
+                                    type:'success',
+                                    message: res.data.message
+                                });
+                            }else{
+                                this.$message.error(res.data.message);
+                            }
+                            this.findPage();
+                        });
+                    } else {
+                        console.log('error submit!!');
+                        return false;
+                    }
+                });
+            },
+            //添加检查项
+            handleAdd () {
+               //提交表单(校验通过异步提交)
+                this.$refs['dataAddForm'].validate((valid) => {
+                    if (valid) {
+                        axios.post('/checkitem1/addItemInfo',this.formData).then((res)=>{
+                            //关闭添加dialog
+                            this.dialogFormVisible = false;
+                            if(res.data.flag){
+                                 this.$message({
+                                     type:'success',
+                                     message: res.data.message
+                                 });
+                            }else{
+                                this.$message.error(res.data.message);
+                            }
+                            this.findPage();
+                        });
+                    } else {
+                        console.log('error submit!!');
+                        return false;
+                    }
+                });
+            },
+            //分页查询
+            findPage() {
+                //编写分页查询js代码
+                //1:提供分页数据
+                var params={
+                    currentPage: this.pagination.currentPage,
+                    pageSize: this.pagination.pageSize,
+                    queryString: this.pagination.queryString
+                }
+                //2:发送异步请求
+                axios.post("/checkitem1/findPageInfo",params).then((res)=>{
+                    this.pagination.total = res.data.total;
+                    this.dataList = res.data.rows;
+                });
+            },
+            //重置表单
+            resetForm() {
+               this.formData = {}
+            },
+            //弹出添加窗口
+            handleCreate() {
+                this.resetForm();
+                this.dialogFormVisible=true;
+            },
+            //弹出编辑窗口
+            handleUpdate(row) {
+                //重置表单
+                this.resetForm();
+                //数据回显
+                this. dialogFormVisible4Edit = true;
+                //异步回显编辑数据
+                axios.post("/checkitem1/getItemInfoById?id="+row.id).then((res)=>{
+                    this.formData = res.data.data;
+                });
+            },
+            //切换页码显示分页信息
+            handleCurrentChange(currentPage) {
+                this.pagination.currentPage = currentPage;
+                this.findPage();
+            },
+            // 删除检查项
+            handleDelete(row) {
+               //row 删除的当前行对象 row.id
+                this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    //执行删除操作
+                    axios.post('/checkitem1/deleteInfoById?id='+row.id).then((res)=>{
+                        if(res.data.flag){
+                            this.$message({
+                                type: 'success',
+                                message: '删除成功!'
+                            });
+                        }else{
+                            this.$message.error(res.data.message);
+                        }
+                        //一定要进行页面刷新
+                        this.findPage();
+                    });
+                }).catch(() => {
+                    //取消删除
+                    this.$message({
+                        type: 'info',
+                        message: '已取消删除'
+                    });
+                });
+            }
+        }
+    })
+</script>
+</html>
